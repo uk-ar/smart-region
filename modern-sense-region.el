@@ -1,4 +1,4 @@
-;;; modern-sense-region.el --- Selecting region, rectangle, multi cursol in smart way.
+;;; modern-sense-region.el --- Select region, rectangle, multi cursol in smart way.
 
 ;;-------------------------------------------------------------------
 ;;
@@ -99,3 +99,5 @@
         ))))
 
 (define-key region-bindings-mode-map (kbd "C-SPC") 'modern-sense-region)
+
+;;; modern-sense-region.el ends here
