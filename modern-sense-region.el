@@ -25,8 +25,9 @@
 
 ;; Author: Yuuki Arisawa <yuuki.ari@gmail.com>
 ;; URL: https://github.com/uk-ar/modern-sense-region
+;; Package-Requires: ((expand-region "20141223")(region-bindings-mode "20140407.1514"))
 ;; Created: 1 April 2015
-;; Version: 1.0.0
+;; Version: 1.0
 ;; Keywords: region
 
 ;;; Commentary:
