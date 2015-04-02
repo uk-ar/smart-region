@@ -1,4 +1,4 @@
-;;; modern-sense-region.el --- Select region, rectangle, multi cursol in smart way.
+;;; smart-region.el --- Select region, rectangle, multi cursol in smart way.
 
 ;;-------------------------------------------------------------------
 ;;
@@ -24,8 +24,8 @@
 ;;-------------------------------------------------------------------
 
 ;; Author: Yuuki Arisawa <yuuki.ari@gmail.com>
-;; URL: https://github.com/uk-ar/modern-sense-region
-;; Package-Requires: ((expand-region "20141223")(region-bindings-mode "20140407.1514"))
+;; URL: https://github.com/uk-ar/smart-region
+;; Package-Requires: ((expand-region "20141223")(region-bindings-mode "20140407.1514")(multiple-cursors "20150307.2322"))
 ;; Created: 1 April 2015
 ;; Version: 1.0
 ;; Keywords: region
@@ -35,6 +35,7 @@
 
 (require 'expand-region)
 (require 'region-bindings-mode)
+(require 'multiple-cursors)
 
 (defun er/mark-outside-quotes ()
   "Mark the current string, including the quotation marks. It will returns t if region expanded."
@@ -74,17 +75,25 @@
     ))
 
 ;;TODO: u c-SPC for pop mark
-(defun modern-sense-region ()
+(defun smart-region ()
   (interactive)
   (if (or (eq last-command 'set-mark-command)
-          (eq last-command 'modern-sense-region)
+          (eq last-command 'smart-region)
           (eq last-command 'er/expand-region)
           )
       (cl-case (char-syntax (char-after))
-        (?" (unless (er/mark-outside-quotes);;"
-                (call-interactively 'er/expand-region)))
-        (?) (unless (er/mark-outside-pairs)
-               (call-interactively 'er/expand-region)))
+        (?\"
+         (unless (er/mark-outside-quotes)
+           (call-interactively 'er/expand-region)))
+        (?\)
+         (unless (er/mark-outside-pairs)
+           (call-interactively 'er/expand-region)))
+        (?\(
+         (unless
+             ;; mark-paris.feature
+             ;; er/mark-outside-pairs has bug (((a) (b))) (((a)(b)))
+             (er/mark-outside-pairs)
+           (call-interactively 'er/expand-region)))
         (t (call-interactively 'er/expand-region)))
             ;;(setq this-command 'er/expand-region)
             ;;https://github.com/magnars/expand-region.el/issues/31
@@ -98,6 +107,7 @@
         (call-interactively 'rectangle-mark-mode)
         ))))
 
-(define-key region-bindings-mode-map (kbd "C-SPC") 'modern-sense-region)
+(define-key region-bindings-mode-map (kbd "C-SPC") 'smart-region)
 
-;;; modern-sense-region.el ends here
+(provide 'smart-region)
+;;; smart-region.el ends here
