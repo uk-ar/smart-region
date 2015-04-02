@@ -81,6 +81,7 @@
           (eq last-command 'smart-region)
           (eq last-command 'er/expand-region)
           )
+      ;;same position
       (cl-case (char-syntax (char-after))
         (?\"
          (unless (er/mark-outside-quotes)
@@ -102,6 +103,7 @@
            (save-excursion
              (goto-char (mark))
              (current-column))))
+      ;;(line-number-at-pos)
       (if (eq column-of-mark (current-column))
           (call-interactively 'mc/edit-lines)
         (call-interactively 'rectangle-mark-mode)
