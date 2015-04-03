@@ -45,42 +45,10 @@
 (require 'cl-lib)
 
 ;;; Code:
-(defun er/mark-outside-quotes ()
-  "Mark the current string, including the quotation marks. It will returns t if region expanded."
-  (interactive)
+(defun smart-region-check-er(func)
   (let ((before (cons (mark) (point))))
-    (if (er--point-inside-string-p)
-        (er--move-point-backward-out-of-string)
-      (when (and (not (use-region-p))
-                 (er/looking-back-on-line "\\s\""))
-        (backward-char)
-        (er--move-point-backward-out-of-string)))
-    (when (looking-at "\\s\"")
-      (set-mark (point))
-      (forward-char)
-      (er--move-point-forward-out-of-string)
-      (exchange-point-and-mark))
-    (message "%S,%S" before (cons (mark) (point)))
-    (not (equal (cons (mark) (point)) before))
-    ))
-
-(defun er/mark-outside-pairs ()
-  "Mark pairs (as defined by the mode), including the pair chars."
-  (interactive)
-  (let ((before (cons (mark) (point))))
-    (if (er/looking-back-on-line "\\s)+\\=")
-        (ignore-errors (backward-list 1))
-      (skip-chars-forward er--space-str))
-    (when (and (er--point-inside-pairs-p)
-               (or (not (er--looking-at-pair))
-                   (er--looking-at-marked-pair)))
-      (goto-char (nth 1 (syntax-ppss))))
-    (when (er--looking-at-pair)
-      (set-mark (point))
-      (forward-list)
-      (exchange-point-and-mark))
-    (not (equal (cons (mark) (point)) before))
-    ))
+    (funcall func)
+    (not (equal (cons (mark) (point)) before))))
 
 ;;TODO: u C-SPC for pop mark
 (defun smart-region (arg)
@@ -101,10 +69,10 @@ mark, it add cursor to each line (it call `mc/edit-lines')."
     ;;https://github.com/magnars/expand-region.el/issues/31
     (cl-case (char-syntax (char-after))
       (?\"
-       (unless (er/mark-outside-quotes)
+       (unless (smart-region-check-er 'er/mark-outside-quotes)
          (call-interactively 'er/expand-region)))
       (?\)
-       (unless (er/mark-outside-pairs)
+       (unless (smart-region-check-er 'er/mark-outside-pairs)
          (call-interactively 'er/expand-region)))
       (?\(
        (unless
