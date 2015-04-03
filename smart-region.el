@@ -25,18 +25,26 @@
 
 ;; Author: Yuuki Arisawa <yuuki.ari@gmail.com>
 ;; URL: https://github.com/uk-ar/smart-region
-;; Package-Requires: ((expand-region "20141223")(region-bindings-mode "20140407.1514")(multiple-cursors "20150307.2322"))
+;; Package-Requires: ((expand-region "0.10.0")(multiple-cursors "1.3.0")(cl-lib "0.5"))
 ;; Created: 1 April 2015
 ;; Version: 1.0
-;; Keywords: region
+;; Keywords: marking region
+;;; Compatibility: GNU Emacs 24.4
 
 ;;; Commentary:
-;; ########   Compatibility   ########################################
+
+;; Smart region guess what you want to select by one command.
+;; If you call this command multiple times at the same position, it expands selected region (it calls ```er/expand-region```).
+;; Else, if you move from the mark and call this command, it select the region rectangular (it call ```rectangle-mark-mode```).
+;; Else, if you move from the mark and call this command at same column as mark, it add cursor to each line (it call ```mc/edit-lines```).
+
+;; This basic concept is from [sense-region](https://gist.github.com/tnoda/1776988).
 
 (require 'expand-region)
-(require 'region-bindings-mode)
 (require 'multiple-cursors)
+(require 'cl-lib)
 
+;;; Code:
 (defun er/mark-outside-quotes ()
   "Mark the current string, including the quotation marks. It will returns t if region expanded."
   (interactive)
@@ -74,42 +82,72 @@
     (not (equal (cons (mark) (point)) before))
     ))
 
-;;TODO: u c-SPC for pop mark
-(defun smart-region ()
-  (interactive)
-  (if (or (eq last-command 'set-mark-command)
-          (eq last-command 'smart-region)
-          (eq last-command 'er/expand-region)
-          )
-      ;;same position
-      (cl-case (char-syntax (char-after))
-        (?\"
-         (unless (er/mark-outside-quotes)
-           (call-interactively 'er/expand-region)))
-        (?\)
-         (unless (er/mark-outside-pairs)
-           (call-interactively 'er/expand-region)))
-        (?\(
-         (unless
-             ;; mark-paris.feature
-             ;; er/mark-outside-pairs has bug (((a) (b))) (((a)(b)))
-             (er/mark-outside-pairs)
-           (call-interactively 'er/expand-region)))
-        (t (call-interactively 'er/expand-region)))
-            ;;(setq this-command 'er/expand-region)
-            ;;https://github.com/magnars/expand-region.el/issues/31
-    ;;multi line
-    (let ((column-of-mark
-           (save-excursion
-             (goto-char (mark))
-             (current-column))))
-      ;;(line-number-at-pos)
-      (if (eq column-of-mark (current-column))
-          (call-interactively 'mc/edit-lines)
-        (call-interactively 'rectangle-mark-mode)
-        ))))
+;;TODO: u C-SPC for pop mark
+(defun smart-region (arg)
+  "Smart region guess what you want to select by one command.
+If you call this command multiple times at the same position, it expands
+selected region (it calls `er/expand-region').
+Else, if you move from the mark and call this command, it select the
+region rectangular (it call `rectangle-mark-mode').
+Else, if you move from the mark and call this command at same column as
+mark, it add cursor to each line (it call `mc/edit-lines')."
+  (interactive "P")
+  (cond
+   ;;region not exist
+   ((not (region-active-p)) (call-interactively 'set-mark-command))
+   ;;region exist & single line
+   ((= (line-number-at-pos) (line-number-at-pos (mark)))
+    ;;(setq this-command 'er/expand-region)
+    ;;https://github.com/magnars/expand-region.el/issues/31
+    (cl-case (char-syntax (char-after))
+      (?\"
+       (unless (er/mark-outside-quotes)
+         (call-interactively 'er/expand-region)))
+      (?\)
+       (unless (er/mark-outside-pairs)
+         (call-interactively 'er/expand-region)))
+      (?\(
+       (unless
+           ;; mark-paris.feature
+           ;; er/mark-outside-pairs has bug (((a) (b))) (((a)(b)))
+           (er/mark-outside-pairs)
+         (call-interactively 'er/expand-region)))
+             (t (call-interactively 'er/expand-region))))
+        ;; region exist & multi line
+   (t
+      (let ((column-of-mark
+             (save-excursion
+               (goto-char (mark))
+               (current-column))))
+        (if (eq column-of-mark (current-column))
+            (call-interactively 'mc/edit-lines)
+          (call-interactively 'rectangle-mark-mode)
+          )))))
 
-(define-key region-bindings-mode-map (kbd "C-SPC") 'smart-region)
+(defvar smart-region-original-command)
+
+(defun smart-region-on ()
+  "Set C-SPC to smart-region."
+  (interactive)
+  (setq smart-region-original-command (key-binding (kbd "C-SPC")))
+  (define-key global-map (kbd "C-SPC") 'smart-region)
+  )
+
+(defun smart-region-off ()
+  "Reset C-SPC to original command."
+  (interactive)
+  (define-key global-map (kbd "C-SPC") smart-region-original-command)
+  )
+
+(add-to-list 'mc/cmds-to-run-once
+             'smart-region)
+;; settings
+(setq mc/cmds-to-run-for-all
+      (delq 'smart-region
+            mc/cmds-to-run-for-all))
+
+(mc/save-lists)
+(smart-region-on)
 
 (provide 'smart-region)
 ;;; smart-region.el ends here

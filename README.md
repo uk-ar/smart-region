@@ -4,4 +4,4 @@ If you call this command multiple times at the same position, it expands selecte
 Else, if you move from the mark and call this command, it select the region rectangular (it call ```rectangle-mark-mode```).
 Else, if you move from the mark and call this command at same column as mark, it add cursor to each line (it call ```mc/edit-lines```).
 
-This basic concept is from sense-region.
+This basic concept is from [sense-region](https://gist.github.com/tnoda/1776988).
