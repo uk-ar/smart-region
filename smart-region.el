@@ -71,16 +71,10 @@ mark, it add cursor to each line (it call `mc/edit-lines')."
       (?\"
        (unless (smart-region-check-er 'er/mark-outside-quotes)
          (call-interactively 'er/expand-region)))
-      (?\)
+      ((?\) ?\()
        (unless (smart-region-check-er 'er/mark-outside-pairs)
          (call-interactively 'er/expand-region)))
-      (?\(
-       (unless
-           ;; mark-paris.feature
-           ;; er/mark-outside-pairs has bug (((a) (b))) (((a)(b)))
-           (er/mark-outside-pairs)
-         (call-interactively 'er/expand-region)))
-             (t (call-interactively 'er/expand-region))))
+      (t (call-interactively 'er/expand-region))))
         ;; region exist & multi line
    (t
       (let ((column-of-mark
@@ -89,22 +83,18 @@ mark, it add cursor to each line (it call `mc/edit-lines')."
                (current-column))))
         (if (eq column-of-mark (current-column))
             (call-interactively 'mc/edit-lines)
-          (call-interactively 'rectangle-mark-mode)
-          )))))
-
-(defvar smart-region-original-command)
+          (call-interactively 'rectangle-mark-mode))))))
 
 (defun smart-region-on ()
   "Set C-SPC to smart-region."
   (interactive)
-  (setq smart-region-original-command (key-binding (kbd "C-SPC")))
-  (define-key global-map (kbd "C-SPC") 'smart-region)
+  (define-key global-map [remap set-mark-command] 'smart-region)
   )
 
 (defun smart-region-off ()
   "Reset C-SPC to original command."
   (interactive)
-  (define-key global-map (kbd "C-SPC") smart-region-original-command)
+  (define-key global-map [remap set-mark-command] nil)
   )
 
 (add-to-list 'mc/cmds-to-run-once
