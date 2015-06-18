@@ -1,4 +1,4 @@
-;;; smart-region.el --- Select region, rectangle, multi cursol in smart way.
+;;; smart-region.el --- Smartly select region, rectangle, multi cursors
 
 ;;-------------------------------------------------------------------
 ;;
@@ -25,7 +25,7 @@
 
 ;; Author: Yuuki Arisawa <yuuki.ari@gmail.com>
 ;; URL: https://github.com/uk-ar/smart-region
-;; Package-Requires: ((expand-region "0.10.0")(multiple-cursors "1.3.0")(cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.4) (expand-region "0.10.0") (multiple-cursors "1.3.0") (cl-lib "0.5"))
 ;; Created: 1 April 2015
 ;; Version: 1.0
 ;; Keywords: marking region
@@ -33,12 +33,16 @@
 
 ;;; Commentary:
 
-;; Smart region guess what you want to select by one command.
-;; If you call this command multiple times at the same position, it expands selected region (it calls ```er/expand-region```).
-;; Else, if you move from the mark and call this command, it select the region rectangular (it call ```rectangle-mark-mode```).
-;; Else, if you move from the mark and call this command at same column as mark, it add cursor to each line (it call ```mc/edit-lines```).
+;; Smart region guesses what you want to select by one command:
 
-;; This basic concept is from [sense-region](https://gist.github.com/tnoda/1776988).
+;; - If you call this command multiple times at the same position, it
+;;   expands the selected region (with `er/expand-region').
+;; - Else, if you move from the mark and call this command, it selects
+;;   the region rectangular (with `rectangle-mark-mode').
+;; - Else, if you move from the mark and call this command at the same
+;;   column as mark, it adds a cursor to each line (with `mc/edit-lines').
+
+;; This basic concept is from sense-region: https://gist.github.com/tnoda/1776988.
 
 (require 'expand-region)
 (require 'multiple-cursors)
@@ -51,6 +55,7 @@
     (not (equal (cons (mark) (point)) before))))
 
 ;;TODO: u C-SPC for pop mark
+;;;###autoload
 (defun smart-region (arg)
   "Smart region guess what you want to select by one command.
 If you call this command multiple times at the same position, it expands
@@ -75,22 +80,24 @@ mark, it add cursor to each line (it call `mc/edit-lines')."
        (unless (smart-region-check-er 'er/mark-outside-pairs)
          (call-interactively 'er/expand-region)))
       (t (call-interactively 'er/expand-region))))
-        ;; region exist & multi line
+   ;; region exist & multi line
    (t
-      (let ((column-of-mark
-             (save-excursion
-               (goto-char (mark))
-               (current-column))))
-        (if (eq column-of-mark (current-column))
-            (call-interactively 'mc/edit-lines)
-          (call-interactively 'rectangle-mark-mode))))))
+    (let ((column-of-mark
+           (save-excursion
+             (goto-char (mark))
+             (current-column))))
+      (if (eq column-of-mark (current-column))
+          (call-interactively 'mc/edit-lines)
+        (call-interactively 'rectangle-mark-mode))))))
 
+;;;###autoload
 (defun smart-region-on ()
   "Set C-SPC to smart-region."
   (interactive)
   (define-key global-map [remap set-mark-command] 'smart-region)
   )
 
+;;;###autoload
 (defun smart-region-off ()
   "Reset C-SPC to original command."
   (interactive)
@@ -105,7 +112,6 @@ mark, it add cursor to each line (it call `mc/edit-lines')."
             mc/cmds-to-run-for-all))
 
 (mc/save-lists)
-(smart-region-on)
 
 (provide 'smart-region)
 ;;; smart-region.el ends here
