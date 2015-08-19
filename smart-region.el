@@ -67,7 +67,9 @@ mark, it add cursor to each line (it call `mc/edit-lines')."
   (interactive "P")
   (cond
    ;;region not exist
-   ((not (region-active-p)) (call-interactively 'set-mark-command))
+   ((not (region-active-p))
+    (setq this-command 'set-mark-command)
+    (call-interactively 'set-mark-command))
    ;;region exist & single line
    ((= (line-number-at-pos) (line-number-at-pos (mark)))
     ;;(setq this-command 'er/expand-region)
