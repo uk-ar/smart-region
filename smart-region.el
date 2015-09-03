@@ -25,7 +25,7 @@
 
 ;; Author: Yuuki Arisawa <yuuki.ari@gmail.com>
 ;; URL: https://github.com/uk-ar/smart-region
-;; Package-Requires: ((emacs "24.4) (expand-region "0.10.0") (multiple-cursors "1.3.0") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.4") (expand-region "0.10.0") (multiple-cursors "1.3.0") (cl-lib "0.5"))
 ;; Created: 1 April 2015
 ;; Version: 1.0
 ;; Keywords: marking region
