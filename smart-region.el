@@ -69,7 +69,13 @@ mark, it add cursor to each line (it call `mc/edit-lines')."
    ;;region not exist
    ((not (region-active-p))
     (setq this-command 'set-mark-command)
-    (call-interactively 'set-mark-command))
+    (call-interactively 'set-mark-command)
+    ;; if next key is SPC, expand-region
+    (er/set-temporary-overlay-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map (kbd "<SPC>") 'er/expand-region)
+       map)
+     t))
    ;;region exist & single line
    ((= (line-number-at-pos) (line-number-at-pos (mark)))
     ;;(setq this-command 'er/expand-region)
